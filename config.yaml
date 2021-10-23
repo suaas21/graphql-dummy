@@ -1,0 +1,13 @@
+app:
+  port: "8080"
+  graceful_timeout: 30
+arango:
+  host: "localhost"
+  port: "8529"
+  db_user: "root"
+  db_password: "admin"
+  db_name: "_system"
+  db_book_collection: "Book"
+  db_author_collection: "Author"
+sentry:
+  dsn: ""

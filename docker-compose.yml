@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  arangodb:
+    container_name: arangodb_container
+    image: arangodb
+    environment:
+      ARANGO_ROOT_PASSWORD: ${ARANGODB_ROOT_PASSWORD:-admin}
+    volumes:
+      - arangodb:/var/lib/arangodb3
+    ports:
+      - "8529:8529"
+    networks:
+      - arangodb
+    restart: unless-stopped
+  networks:
+    arangodb:
+      driver: bridge
+  volumes:
+    arangodb:
+
+  app:
+    build: .
+    image: graphql-dummy:latest
+    depends_on:
+      - arangodb
+    volumes:
+      - ./config.yaml:/etc/book-author/config.yaml
+    ports:
+      - 8080:8080
+    command: 'serve --config /etc/book-author/config.yaml'
+
