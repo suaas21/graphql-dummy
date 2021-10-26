@@ -6,6 +6,8 @@ import (
 	"github.com/arangodb/go-driver"
 	"github.com/spf13/viper"
 	"github.com/suaas21/graphql-dummy/infra/sentry"
+	"github.com/suaas21/graphql-dummy/repo/author"
+	"github.com/suaas21/graphql-dummy/repo/book"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +22,6 @@ import (
 	"github.com/suaas21/graphql-dummy/config"
 	infraArango "github.com/suaas21/graphql-dummy/infra/arango"
 	"github.com/suaas21/graphql-dummy/logger"
-	"github.com/suaas21/graphql-dummy/repo"
 	"github.com/suaas21/graphql-dummy/schema"
 )
 
@@ -104,8 +105,9 @@ func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr lo
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", authorCollectionName))
 	}
 
-	bookRepo := repo.NewBook(ctx, db, bookCollectionName, lgr)
-	authorRepo := repo.NewAuthor(ctx, db, authorCollectionName, lgr)
+	bookRepo := book.NewArangoBookRepository(ctx, db, bookCollectionName, lgr)
+
+	authorRepo := author.NewArangoAuthorRepository(ctx, db, authorCollectionName, lgr)
 
 	return schema.NewBookAuthor(bookRepo, authorRepo, lgr), nil
 }
