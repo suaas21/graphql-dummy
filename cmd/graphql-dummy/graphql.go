@@ -74,17 +74,24 @@ func serve(cmd *cobra.Command, args []string) error {
 func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr logger.StructLogger) (*schema.BookAuthor, error) {
 	bookCollectionName := viper.GetString("arango.db_book_collection")
 	authorCollectionName := viper.GetString("arango.db_author_collection")
+<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 	var bookCollection, authorCollection driver.Collection
+=======
+>>>>>>> bug fixed for getting documents config:cmd/book-author/graphql.go
 
 	// check book collection - create if not exists
 	bookExists, err := db.CollectionExists(ctx, bookCollectionName)
 	if err != nil {
+<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 		lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
+=======
+		lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+>>>>>>> bug fixed for getting documents config:cmd/book-author/graphql.go
 	}
 	if !bookExists {
 		bookCollection, err = db.CreateCollection(ctx, bookCollectionName, nil)
 		if err != nil {
-			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+			lgr.Warnln("could not create collection", "", fmt.Sprintf("collection not found error: %v", err))
 			return nil, err
 		}
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", bookCollectionName))
@@ -99,12 +106,18 @@ func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr lo
 	// check author collection - create if not exists
 	authorExists, err := db.CollectionExists(ctx, authorCollectionName)
 	if err != nil {
+<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 		lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
 	}
+=======
+		lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+	}
+
+>>>>>>> bug fixed for getting documents config:cmd/book-author/graphql.go
 	if !authorExists {
 		authorCollection, err = db.CreateCollection(ctx, authorCollectionName, nil)
 		if err != nil {
-			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+			lgr.Warnln("could not create collection", "", fmt.Sprintf("collection not found error: %v", err))
 			return nil, err
 		}
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", authorCollectionName))
