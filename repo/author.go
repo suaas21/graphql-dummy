@@ -7,17 +7,17 @@ import (
 )
 
 type Author struct {
-	db  infra.DB
+	db         infra.DB
 	collection string
-	ctx context.Context
-	log logger.StructLogger
+	ctx        context.Context
+	log        logger.StructLogger
 }
 
 func NewAuthor(ctx context.Context, db infra.DB, collection string, lgr logger.StructLogger) *Author {
 	return &Author{
-		ctx: ctx,
-		db:  db,
+		ctx:        ctx,
+		db:         db,
 		collection: collection,
-		log: lgr,
+		log:        lgr,
 	}
 }

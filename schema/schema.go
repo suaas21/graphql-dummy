@@ -6,15 +6,15 @@ import (
 )
 
 type BookAuthor struct {
-	bookRepo *repo.Book
+	bookRepo   *repo.Book
 	authorRepo *repo.Author
-	log      logger.StructLogger
+	log        logger.StructLogger
 }
 
-func NewBookAuthor(bookRepo *repo.Book, authorRepo *repo.Author,  lgr logger.StructLogger) *BookAuthor {
+func NewBookAuthor(bookRepo *repo.Book, authorRepo *repo.Author, lgr logger.StructLogger) *BookAuthor {
 	return &BookAuthor{
-		bookRepo: bookRepo,
+		bookRepo:   bookRepo,
 		authorRepo: authorRepo,
-		log:      lgr,
+		log:        lgr,
 	}
 }

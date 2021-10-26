@@ -6,10 +6,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
+
 // temp DB interface
 
 type DB interface {
-
 }
 
 // <------------------------------------arango----------------------------------->
