@@ -1,6 +1,7 @@
 package repo
 
 import (
+<<<<<<< HEAD
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
 	"github.com/suaas21/graphql-dummy/model"
@@ -33,6 +34,15 @@ func NewAuthor(ctx context.Context, db infra.DB, lgr logger.StructLogger) *Autho
 		log:        lgr,
 >>>>>>> format code
 	}
+=======
+	"github.com/suaas21/graphql-dummy/model"
+)
+
+type AuthorRepository interface {
+	CreateAuthor(author model.Author) error
+	UpdateAuthor(author model.Author) error
+	DeleteAuthor(id uint) error
+>>>>>>> inroduce new structure for repository
 }
 
 func (a *Author) CreateAuthorDocument(author *model.Author) error {

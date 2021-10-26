@@ -5,6 +5,8 @@ import (
 	"github.com/arangodb/go-driver"
 	"github.com/spf13/viper"
 	"github.com/suaas21/graphql-dummy/infra/sentry"
+	"github.com/suaas21/graphql-dummy/repo/author"
+	"github.com/suaas21/graphql-dummy/repo/book"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +21,6 @@ import (
 	"github.com/suaas21/graphql-dummy/config"
 	infraArango "github.com/suaas21/graphql-dummy/infra/arango"
 	"github.com/suaas21/graphql-dummy/logger"
-	"github.com/suaas21/graphql-dummy/repo"
 	"github.com/suaas21/graphql-dummy/schema"
 	"golang.org/x/net/context"
 )
@@ -129,8 +130,14 @@ func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr lo
 		}
 	}
 
+<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 	bookRepo := repo.NewBook(ctx, infraArango.NewArangoClient(ctx, db, bookCollection), lgr)
 	authorRepo := repo.NewAuthor(ctx, infraArango.NewArangoClient(ctx, db, authorCollection), lgr)
+=======
+	bookRepo := book.NewArangoBookRepository(ctx, db, bookCollectionName, lgr)
+
+	authorRepo := author.NewArangoAuthorRepository(ctx, db, authorCollectionName, lgr)
+>>>>>>> inroduce new structure for repository:cmd/book-author/graphql.go
 
 	return schema.NewBookAuthor(bookRepo, authorRepo, lgr), nil
 }

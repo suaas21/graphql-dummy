@@ -1,6 +1,7 @@
 package repo
 
 import (
+<<<<<<< HEAD
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
 	"github.com/suaas21/graphql-dummy/model"
@@ -46,3 +47,13 @@ func (a *Book) GetBookDocuments(keys []string) ([]model.Book, error) {
 	}
 	return books, nil
 }
+=======
+	"github.com/suaas21/graphql-dummy/model"
+)
+
+type BookRepository interface {
+	CreateBook(book model.Book) error
+	UpdateBook(book model.Book) error
+	DeleteBook(id uint) error
+}
+>>>>>>> inroduce new structure for repository
