@@ -8,16 +8,30 @@ import (
 )
 
 type Author struct {
+<<<<<<< HEAD
 	db  infra.DB
 	ctx context.Context
 	log logger.StructLogger
+=======
+	db         infra.DB
+	collection string
+	ctx        context.Context
+	log        logger.StructLogger
+>>>>>>> format code
 }
 
 func NewAuthor(ctx context.Context, db infra.DB, lgr logger.StructLogger) *Author {
 	return &Author{
+<<<<<<< HEAD
 		ctx: ctx,
 		db:  db,
 		log: lgr,
+=======
+		ctx:        ctx,
+		db:         db,
+		collection: collection,
+		log:        lgr,
+>>>>>>> format code
 	}
 }
 

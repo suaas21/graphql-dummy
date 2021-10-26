@@ -42,12 +42,19 @@ func NewArangoDB(ctx context.Context, cfg *config.Arango) (driver.Database, erro
 	return db, nil
 }
 
+<<<<<<< HEAD
 // NewArangoClient returns Arango database and collection
 func NewArangoClient(ctx context.Context, db driver.Database, col driver.Collection) *Arango {
 	return &Arango{
 		ctx: ctx,
 		db:  db,
 		col: col,
+=======
+func (d *Arango) ReadDocument(ctx context.Context, colName, key string, result interface{}) error {
+	col, err := d.database.Collection(ctx, colName)
+	if IsNotFound(err) != nil {
+		return err
+>>>>>>> format code
 	}
 }
 
@@ -75,8 +82,17 @@ func (a *Arango) CreateDocument(ctx context.Context, doc interface{}) error {
 	return err
 }
 
+<<<<<<< HEAD
 func (a *Arango) CreateDocuments(ctx context.Context, docs interface{}) error {
 	_, _, err := a.col.CreateDocuments(ctx, docs)
+=======
+func (d *Arango) CreateDocuments(ctx context.Context, colName string, docs interface{}) error {
+	col, err := d.database.Collection(ctx, colName)
+	if IsNotFound(err) != nil {
+		return err
+	}
+	_, _, err = col.CreateDocuments(ctx, docs)
+>>>>>>> format code
 	if err != nil {
 		return err
 	}
