@@ -1,24 +1,53 @@
-package objects
+package initialize
 
 import (
 	"fmt"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql"
 	"github.com/suaas21/graphql-dummy/model"
-	"github.com/suaas21/graphql-dummy/schema/resolver"
 	"github.com/suaas21/graphql-dummy/utils"
 	"strings"
 )
 
-func LoadSchemaObjects(loaders map[string]*dataloader.Loader, bookType, authorType *graphql.Object) {
-	loaders[utils.BookAuthorIds] = dataloader.NewBatchedLoader(resolver.GetAuthorsBatchFn)
-	loaders[utils.AuthorBookIds] = dataloader.NewBatchedLoader(resolver.GetBooksBatchFn)
+func GetBookAuthorObject() (*graphql.Object, *graphql.Object) {
+	// book and author objects....
+	bookType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Book",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type: graphql.String,
+			},
+			"name": &graphql.Field{
+				Type: graphql.String,
+			},
+			"description": &graphql.Field{
+				Type: graphql.String,
+			},
+		},
+	})
+	authorType := graphql.NewObject(graphql.ObjectConfig{
+		Name: "Author",
+		Fields: graphql.Fields{
+			"id": &graphql.Field{
+				Type: graphql.String,
+			},
+			"name": &graphql.Field{
+				Type: graphql.String,
+			},
+		},
+	})
+	// Add extra field for book and author....
+	AddBookAuthorFieldConfig(bookType, authorType)
 
+	return bookType, authorType
+}
+
+func AddBookAuthorFieldConfig(bookType, authorType *graphql.Object) {
 	bookType.AddFieldConfig("authors", &graphql.Field{
 		Type: graphql.NewList(authorType),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			var (
-				book, bookOk = p.Source.(model.Book)
+				book, bookOk = p.Source.(*model.Book)
 				loaders      = p.Context.Value("loaders").(map[string]*dataloader.Loader)
 				handleErrors = func(errors []error) error {
 					if len(errors) == 0 {
@@ -51,7 +80,7 @@ func LoadSchemaObjects(loaders map[string]*dataloader.Loader, bookType, authorTy
 		Type: graphql.NewList(bookType),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			var (
-				author, authorOk = p.Source.(model.Author)
+				author, authorOk = p.Source.(*model.Author)
 				loaders          = p.Context.Value("loaders").(map[string]*dataloader.Loader)
 				handleErrors     = func(errors []error) error {
 					if len(errors) == 0 {
