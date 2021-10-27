@@ -42,7 +42,6 @@ func New(ctx context.Context, cfg *config.Arango) (driver.Database, error) {
 	return db, nil
 }
 
-
 func (d *Arango) ReadDocument(ctx context.Context, colName, key string, result interface{}) error {
 	col, err := d.database.Collection(ctx, colName)
 	if IsNotFound(err) != nil {
@@ -84,7 +83,7 @@ func (d *Arango) CreateDocuments(ctx context.Context, colName string, docs inter
 	if IsNotFound(err) != nil {
 		return err
 	}
-	_,_, err = col.CreateDocuments(ctx, docs)
+	_, _, err = col.CreateDocuments(ctx, docs)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,8 @@ import (
 	"github.com/arangodb/go-driver"
 	"github.com/spf13/viper"
 	"github.com/suaas21/graphql-dummy/infra/sentry"
+	"github.com/suaas21/graphql-dummy/repo/author"
+	"github.com/suaas21/graphql-dummy/repo/book"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +22,6 @@ import (
 	"github.com/suaas21/graphql-dummy/config"
 	infraArango "github.com/suaas21/graphql-dummy/infra/arango"
 	"github.com/suaas21/graphql-dummy/logger"
-	"github.com/suaas21/graphql-dummy/repo"
 	"github.com/suaas21/graphql-dummy/schema"
 )
 
@@ -72,16 +73,18 @@ func serve(cmd *cobra.Command, args []string) error {
 }
 
 func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr logger.StructLogger) (*schema.BookAuthor, error) {
-	bookCollectionName := viper.GetString("db_book_collection")
-	authorCollectionName := viper.GetString("db_author_collection")
+	bookCollectionName := viper.GetString("arango.db_book_collection")
+	authorCollectionName := viper.GetString("arango.db_author_collection")
 
 	// check book collection - create if not exists
 	bookExists, err := db.CollectionExists(ctx, bookCollectionName)
-	lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+	if err != nil {
+		lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+	}
 	if !bookExists {
 		_, err = db.CreateCollection(ctx, bookCollectionName, nil)
 		if err != nil {
-			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+			lgr.Warnln("could not create collection", "", fmt.Sprintf("collection not found error: %v", err))
 			return nil, err
 		}
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", bookCollectionName))
@@ -89,18 +92,22 @@ func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr lo
 
 	// check author collection - create if not exists
 	authorExists, err := db.CollectionExists(ctx, authorCollectionName)
-	lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+	if err != nil {
+		lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+	}
+
 	if !authorExists {
 		_, err = db.CreateCollection(ctx, authorCollectionName, nil)
 		if err != nil {
-			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
+			lgr.Warnln("could not create collection", "", fmt.Sprintf("collection not found error: %v", err))
 			return nil, err
 		}
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", authorCollectionName))
 	}
 
-	bookRepo := repo.NewBook(ctx, db, bookCollectionName, lgr)
-	authorRepo := repo.NewAuthor(ctx, db, authorCollectionName, lgr)
+	bookRepo := book.NewArangoBookRepository(ctx, db, bookCollectionName, lgr)
+
+	authorRepo := author.NewArangoAuthorRepository(ctx, db, authorCollectionName, lgr)
 
 	return schema.NewBookAuthor(bookRepo, authorRepo, lgr), nil
 }
@@ -196,5 +203,3 @@ func getAddressFromHostAndPort(host string, port int) string {
 	}
 	return addr
 }
-
-
