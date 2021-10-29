@@ -12,10 +12,12 @@ require (
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/graphql-go/graphql v0.8.0
 	github.com/mitchellh/mapstructure v1.4.0 // indirect
+	github.com/onet/arango-testify-mock v0.0.0-20181015175830-5f6fe1610eff // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/rs/zerolog v1.20.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.0
+	github.com/stretchr/testify v1.7.0 // indirect
 	go.mongodb.org/mongo-driver v1.7.3
 	go.uber.org/zap v1.10.0
 	golang.org/x/sys v0.0.0-20210112080510-489259a85091 // indirect
