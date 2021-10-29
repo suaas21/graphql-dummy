@@ -23,9 +23,9 @@ func TestBookArangoRepository_CreateBook(t *testing.T) {
 	arangoDB.On("CreateDocument", mock.Anything, mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	arangoDB.On("DocumentExists", mock.Anything, "book_author_edges", mock.AnythingOfType("string")).Return(false, nil)
 
-	arangoRepo := book.NewArangoBookRepository(context.Background(), arangoDB, "Book", nil)
+	arangoRepo := book.NewArangoBookRepository(arangoDB, "Book", nil)
 
-	if err := arangoRepo.CreateBook(bookData); err != nil {
+	if err := arangoRepo.CreateBook(context.Background(), bookData); err != nil {
 		t.Fatal(err)
 	}
 
@@ -49,9 +49,9 @@ func TestBookArangoRepository_UpdateBook(t *testing.T) {
 	arangoDB.On("UpdateDocument", mock.Anything, mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(nil)
 	arangoDB.On("DocumentExists", mock.Anything, "book_author_edges", mock.AnythingOfType("string")).Return(false, nil)
 
-	arangoRepo := book.NewArangoBookRepository(context.Background(), arangoDB, "Book", nil)
+	arangoRepo := book.NewArangoBookRepository(arangoDB, "Book", nil)
 
-	if err := arangoRepo.UpdateBook(bookData); err != nil {
+	if err := arangoRepo.UpdateBook(context.Background(), bookData); err != nil {
 		t.Fatal(err)
 	}
 
@@ -66,9 +66,9 @@ func TestBookArangoRepository_DeleteBook(t *testing.T) {
 	arangoDB := new(mocks.ArangoDB)
 	arangoDB.On("RemoveDocument", mock.Anything, "Book", "1").Return(nil).Once()
 
-	arangoRepo := book.NewArangoBookRepository(context.Background(), arangoDB, "Book", nil)
+	arangoRepo := book.NewArangoBookRepository(arangoDB, "Book", nil)
 
-	if err := arangoRepo.DeleteBook(1); err != nil {
+	if err := arangoRepo.DeleteBook(context.Background(), 1); err != nil {
 		t.Fatal(err)
 	}
 

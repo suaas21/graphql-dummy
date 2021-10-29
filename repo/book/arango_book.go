@@ -26,26 +26,24 @@ type edgeRelation struct {
 type bookArangoRepository struct {
 	db         infra.ArangoDB
 	collection string
-	ctx        context.Context
 	log        logger.StructLogger
 }
 
-func NewArangoBookRepository(ctx context.Context, db infra.ArangoDB, collection string, lgr logger.StructLogger) repo.BookRepository {
+func NewArangoBookRepository(db infra.ArangoDB, collection string, lgr logger.StructLogger) repo.BookRepository {
 	return &bookArangoRepository{
-		ctx:        ctx,
 		db:         db,
 		collection: collection,
 		log:        lgr,
 	}
 }
 
-func (b *bookArangoRepository) CreateBook(book model.Book) error {
-	if err := b.db.CreateDocument(b.ctx, b.collection, &book); err != nil {
+func (b *bookArangoRepository) CreateBook(ctx context.Context, book model.Book) error {
+	if err := b.db.CreateDocument(ctx, b.collection, &book); err != nil {
 		return err
 	}
 
 	for _, authorId := range book.AuthorIDs {
-		if err := b.upsertBookAuthorEdge(fmt.Sprintf("%d", book.ID), fmt.Sprintf("%d", authorId)); err != nil {
+		if err := b.upsertBookAuthorEdge(ctx, fmt.Sprintf("%d", book.ID), fmt.Sprintf("%d", authorId)); err != nil {
 			return err
 		}
 	}
@@ -53,13 +51,13 @@ func (b *bookArangoRepository) CreateBook(book model.Book) error {
 	return nil
 }
 
-func (b *bookArangoRepository) UpdateBook(book model.Book) error {
-	if err := b.db.UpdateDocument(b.ctx, b.collection, fmt.Sprintf("%d", book.ID), &book); err != nil {
+func (b *bookArangoRepository) UpdateBook(ctx context.Context, book model.Book) error {
+	if err := b.db.UpdateDocument(ctx, b.collection, fmt.Sprintf("%d", book.ID), &book); err != nil {
 		return err
 	}
 
 	for _, authorId := range book.AuthorIDs {
-		if err := b.upsertBookAuthorEdge(fmt.Sprintf("%d", book.ID), fmt.Sprintf("%d", authorId)); err != nil {
+		if err := b.upsertBookAuthorEdge(ctx, fmt.Sprintf("%d", book.ID), fmt.Sprintf("%d", authorId)); err != nil {
 			return err
 		}
 	}
@@ -67,16 +65,16 @@ func (b *bookArangoRepository) UpdateBook(book model.Book) error {
 	return nil
 }
 
-func (b *bookArangoRepository) DeleteBook(id uint) error {
-	return b.db.RemoveDocument(b.ctx, b.collection, fmt.Sprintf("%d", id))
+func (b *bookArangoRepository) DeleteBook(ctx context.Context, id uint) error {
+	return b.db.RemoveDocument(ctx, b.collection, fmt.Sprintf("%d", id))
 
 }
 
-func (b *bookArangoRepository) upsertBookAuthorEdge(bookId, authorId string) error {
+func (b *bookArangoRepository) upsertBookAuthorEdge(ctx context.Context, bookId, authorId string) error {
 	key := fmt.Sprintf("%s-%s", bookId, authorId)
 
 	// look for existence
-	if exist, err := b.db.DocumentExists(b.ctx, "book_author_edges", key); err != nil {
+	if exist, err := b.db.DocumentExists(ctx, "book_author_edges", key); err != nil {
 		return err
 	} else if exist {
 		// no need to create edge
@@ -88,7 +86,7 @@ func (b *bookArangoRepository) upsertBookAuthorEdge(bookId, authorId string) err
 		XFrom: fmt.Sprintf("authors/%s", authorId),
 		XTo:   fmt.Sprintf("%s/%s", b.collection, bookId), CreatedAt: time.Now().Format(time.RFC3339)}
 
-	if err := b.db.CreateDocument(b.ctx, "book_author_edges", &relation); err != nil {
+	if err := b.db.CreateDocument(ctx, "book_author_edges", &relation); err != nil {
 		return err
 	}
 
