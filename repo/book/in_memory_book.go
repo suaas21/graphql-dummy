@@ -57,3 +57,11 @@ func (b *bookInMemoryRepository) DeleteBook(ctx context.Context, id uint) error 
 	delete(b.dataStore, id)
 	return nil
 }
+
+func (b *bookInMemoryRepository) GetBook(ctx context.Context, id uint) (*model.Book, error) {
+	if book, ok := b.dataStore[id]; !ok {
+		return nil, errors.New(fmt.Sprintf("ID: %v not found", id))
+	} else {
+		return &book, nil
+	}
+}

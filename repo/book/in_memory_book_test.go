@@ -28,6 +28,16 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("get", func(t *testing.T) {
+		returnedBook, err := inMemoryBookRepo.GetBook(context.Background(), bookData.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, returnedBook)
+
+		returnedBook, err = inMemoryBookRepo.GetBook(context.Background(), 2)
+		assert.Error(t, err)
+		assert.Nil(t, returnedBook)
+	})
+
 	t.Run("update", func(t *testing.T) {
 		bookData.Name = "A Good Book"
 

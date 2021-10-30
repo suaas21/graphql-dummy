@@ -74,3 +74,17 @@ func TestBookArangoRepository_DeleteBook(t *testing.T) {
 
 	arangoDB.AssertExpectations(t)
 }
+
+func TestBookArangoRepository_GetBook(t *testing.T) {
+	arangoDB := new(mocks.ArangoDB)
+	arangoDB.On("ReadDocument", mock.Anything, "Book", "1", mock.Anything).Return(nil).Once()
+
+	arangoRepo := book.NewArangoBookRepository(arangoDB, "Book", nil)
+
+	_, err := arangoRepo.GetBook(context.Background(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	arangoDB.AssertExpectations(t)
+}

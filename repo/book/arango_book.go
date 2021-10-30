@@ -70,6 +70,14 @@ func (b *bookArangoRepository) DeleteBook(ctx context.Context, id uint) error {
 
 }
 
+func (b *bookArangoRepository) GetBook(ctx context.Context, id uint) (*model.Book, error) {
+	var book model.Book
+	if err := b.db.ReadDocument(ctx, b.collection, fmt.Sprintf("%d", id), &book); err != nil {
+		return nil, err
+	}
+	return &book, nil
+}
+
 func (b *bookArangoRepository) upsertBookAuthorEdge(ctx context.Context, bookId, authorId string) error {
 	key := fmt.Sprintf("%s-%s", bookId, authorId)
 
