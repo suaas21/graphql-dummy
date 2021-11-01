@@ -21,7 +21,7 @@ import (
 	"github.com/suaas21/graphql-dummy/config"
 	infraArango "github.com/suaas21/graphql-dummy/infra/arango"
 	"github.com/suaas21/graphql-dummy/logger"
-	"github.com/suaas21/graphql-dummy/schema"
+	"github.com/suaas21/graphql-dummy/service"
 	"golang.org/x/net/context"
 )
 
@@ -72,27 +72,20 @@ func serve(cmd *cobra.Command, args []string) error {
 
 }
 
-func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr logger.StructLogger) (*schema.BookAuthor, error) {
+func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr logger.StructLogger) (*service.BookAuthor, error) {
 	bookCollectionName := viper.GetString("arango.db_book_collection")
 	authorCollectionName := viper.GetString("arango.db_author_collection")
-<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 	var bookCollection, authorCollection driver.Collection
-=======
->>>>>>> bug fixed for getting documents config:cmd/book-author/graphql.go
 
 	// check book collection - create if not exists
 	bookExists, err := db.CollectionExists(ctx, bookCollectionName)
 	if err != nil {
-<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 		lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
-=======
-		lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
->>>>>>> bug fixed for getting documents config:cmd/book-author/graphql.go
 	}
 	if !bookExists {
 		bookCollection, err = db.CreateCollection(ctx, bookCollectionName, nil)
 		if err != nil {
-			lgr.Warnln("could not create collection", "", fmt.Sprintf("collection not found error: %v", err))
+			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
 			return nil, err
 		}
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", bookCollectionName))
@@ -107,18 +100,12 @@ func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr lo
 	// check author collection - create if not exists
 	authorExists, err := db.CollectionExists(ctx, authorCollectionName)
 	if err != nil {
-<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
 		lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
 	}
-=======
-		lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
-	}
-
->>>>>>> bug fixed for getting documents config:cmd/book-author/graphql.go
 	if !authorExists {
 		authorCollection, err = db.CreateCollection(ctx, authorCollectionName, nil)
 		if err != nil {
-			lgr.Warnln("could not create collection", "", fmt.Sprintf("collection not found error: %v", err))
+			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
 			return nil, err
 		}
 		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", authorCollectionName))
@@ -130,19 +117,13 @@ func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr lo
 		}
 	}
 
-<<<<<<< HEAD:cmd/graphql-dummy/graphql.go
-	bookRepo := repo.NewBook(ctx, infraArango.NewArangoClient(ctx, db, bookCollection), lgr)
-	authorRepo := repo.NewAuthor(ctx, infraArango.NewArangoClient(ctx, db, authorCollection), lgr)
-=======
-	bookRepo := book.NewArangoBookRepository(ctx, db, bookCollectionName, lgr)
+	bookRepo := book.NewArangoBookRepository(ctx, infraArango.NewArangoClient(ctx, db, bookCollection), lgr)
+	authorRepo := author.NewArangoAuthorRepository(ctx, infraArango.NewArangoClient(ctx, db, authorCollection), lgr)
 
-	authorRepo := author.NewArangoAuthorRepository(ctx, db, authorCollectionName, lgr)
->>>>>>> inroduce new structure for repository:cmd/book-author/graphql.go
-
-	return schema.NewBookAuthor(bookRepo, authorRepo, lgr), nil
+	return service.NewBookAuthor(bookRepo, authorRepo, lgr), nil
 }
 
-func startApiServer(cfg *config.Application, schema *schema.BookAuthor, lgr logger.StructLogger) error {
+func startApiServer(cfg *config.Application, schema *service.BookAuthor, lgr logger.StructLogger) error {
 	baCtrl := api.NewBookAuthorController(*schema, lgr)
 
 	r := chi.NewMux()

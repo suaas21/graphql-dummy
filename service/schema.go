@@ -1,11 +1,11 @@
-package schema
+package service
 
 import (
 	"fmt"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql"
 	"github.com/suaas21/graphql-dummy/model"
-	"github.com/suaas21/graphql-dummy/schema/initialize"
+	"github.com/suaas21/graphql-dummy/service/initialize"
 	"github.com/suaas21/graphql-dummy/utils"
 	"golang.org/x/net/context"
 )
@@ -34,7 +34,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					id, ok := p.Args["id"].(string)
 					if ok {
-						return ba.bookRepo.GetBookDocument(id)
+						return ba.bookRepo.GetBookByID(id)
 					}
 					return nil, nil
 				},
@@ -50,7 +50,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					id, ok := p.Args["id"].(string)
 					if ok {
-						return ba.authorRepo.GetAuthorDocument(id)
+						return ba.authorRepo.GetAuthorByID(id)
 					}
 					return nil, nil
 				},
@@ -100,7 +100,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						}
 						book.AuthorIDs = authorIdsStr
 					}
-					err := ba.bookRepo.CreateBookDocument(book)
+					err := ba.bookRepo.CreateBook(book)
 					if err != nil {
 						return nil, err
 					}
@@ -140,7 +140,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						}
 						author.BookIDs = bookIdsStr
 					}
-					err := ba.authorRepo.CreateAuthorDocument(author)
+					err := ba.authorRepo.CreateAuthor(author)
 					if err != nil {
 						return nil, err
 					}
@@ -155,7 +155,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 		Mutation: mutation,
 	})
 	if err != nil {
-		fmt.Printf("Failed to create new schema, error: %v\n", err)
+		fmt.Printf("Failed to create new service, error: %v\n", err)
 	}
 	ctx := context.WithValue(context.Background(), "loaders", loaders)
 

@@ -1,4 +1,4 @@
-package schema
+package service
 
 import (
 	"github.com/graph-gophers/dataloader"
@@ -15,7 +15,7 @@ func (ba *BookAuthor) GetAuthorsBatchFn(ctx context.Context, keys dataloader.Key
 		return results
 	}
 
-	authors, err := ba.authorRepo.GetAuthorDocuments(keys.Keys())
+	authors, err := ba.authorRepo.ListAuthorByIDs(keys.Keys())
 	if err != nil {
 		handleError(err)
 	}
@@ -41,7 +41,7 @@ func (ba *BookAuthor) GetBooksBatchFn(ctx context.Context, keys dataloader.Keys)
 		return results
 	}
 
-	books, err := ba.bookRepo.GetBookDocuments(keys.Keys())
+	books, err := ba.bookRepo.ListBookByIDs(keys.Keys())
 	if err != nil {
 		handleError(err)
 	}

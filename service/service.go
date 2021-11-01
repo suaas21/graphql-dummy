@@ -1,4 +1,4 @@
-package schema
+package service
 
 import (
 	"github.com/suaas21/graphql-dummy/logger"
