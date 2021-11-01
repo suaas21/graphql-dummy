@@ -11,7 +11,7 @@ type zeroLevelLogger struct {
 
 func NewZeroLevelLogger() StructLogger {
 	sublogger := log.With().CallerWithSkipFrameCount(3).Stack().
-		Str("schema", "catalog").
+		Str("service", "catalog").
 		Logger()
 	return &zeroLevelLogger{
 		lgr: sublogger,

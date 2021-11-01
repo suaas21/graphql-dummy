@@ -1,46 +1,23 @@
-package schema
+package service
 
 import (
-	"context"
 	"fmt"
 	"github.com/graph-gophers/dataloader"
 	"github.com/graphql-go/graphql"
-	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/model"
-	"github.com/suaas21/graphql-dummy/schema/objects"
+	"github.com/suaas21/graphql-dummy/service/initialize"
+	"github.com/suaas21/graphql-dummy/utils"
+	"golang.org/x/net/context"
 )
 
 func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, error) {
 	// loaders...
 	var loaders = make(map[string]*dataloader.Loader)
+	loaders[utils.BookAuthorIds] = dataloader.NewBatchedLoader(ba.GetAuthorsBatchFn)
+	loaders[utils.AuthorBookIds] = dataloader.NewBatchedLoader(ba.GetBooksBatchFn)
 
-	// book and author objects....
-	bookType := graphql.NewObject(graphql.ObjectConfig{
-		Name: "Book",
-		Fields: graphql.Fields{
-			"id": &graphql.Field{
-				Type: graphql.Int,
-			},
-			"name": &graphql.Field{
-				Type: graphql.String,
-			},
-			"description": &graphql.Field{
-				Type: graphql.String,
-			},
-		},
-	})
-	authorType := graphql.NewObject(graphql.ObjectConfig{
-		Name: "Author",
-		Fields: graphql.Fields{
-			"id": &graphql.Field{
-				Type: graphql.Int,
-			},
-			"name": &graphql.Field{
-				Type: graphql.String,
-			},
-		},
-	})
-	objects.LoadSchemaObjects(loaders, bookType, authorType)
+	// initialize book, author object...
+	bookType, authorType := initialize.GetBookAuthorObject()
 
 	// query and mutation....
 	query := graphql.NewObject(graphql.ObjectConfig{
@@ -51,17 +28,13 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Description: "get book by id",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
-						Type: graphql.Int,
+						Type: graphql.String,
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					id, ok := p.Args["id"].(int)
+					id, ok := p.Args["id"].(string)
 					if ok {
-						for _, book := range infra.ListBook {
-							if book.ID == uint(id) {
-								return book, nil
-							}
-						}
+						return ba.bookRepo.GetBookByID(id)
 					}
 					return nil, nil
 				},
@@ -71,17 +44,13 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Description: "get author by id",
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
-						Type: graphql.Int,
+						Type: graphql.String,
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					id, ok := p.Args["id"].(int)
+					id, ok := p.Args["id"].(string)
 					if ok {
-						for _, author := range infra.ListAuthor {
-							if author.ID == uint(id) {
-								return author, nil
-							}
-						}
+						return ba.authorRepo.GetAuthorByID(id)
 					}
 					return nil, nil
 				},
@@ -96,7 +65,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Type:        bookType,
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.Int),
+						Type: graphql.NewNonNull(graphql.String),
 					},
 					"name": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
@@ -105,17 +74,18 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						Type: graphql.String,
 					},
 					"author_ids": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.NewList(graphql.Int)),
+						Type: graphql.NewNonNull(graphql.NewList(graphql.String)),
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					id, idOk := p.Args["id"].(int)
+					id, idOk := p.Args["id"].(string)
 					name, nameOk := p.Args["name"].(string)
 					description, desOk := p.Args["description"].(string)
 					authorIds, authorIdsOk := p.Args["author_ids"].([]interface{})
-					book := model.Book{}
+					book := &model.Book{}
 					if idOk {
-						book.ID = uint(id)
+						book.ID = id
+						book.Xkey = id
 					}
 					if nameOk {
 						book.Name = name
@@ -124,17 +94,16 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						book.Description = description
 					}
 					if authorIdsOk {
-						var auids = make([]uint, 0)
+						var authorIdsStr = make([]string, 0)
 						for _, aid := range authorIds {
-							auids = append(auids, uint(aid.(int)))
+							authorIdsStr = append(authorIdsStr, aid.(string))
 						}
-						book.AuthorIDs = auids
+						book.AuthorIDs = authorIdsStr
 					}
-					infra.ListBook = append(infra.ListBook, book) //for save data in memory
-					//err := ba.bookRepo.CreateBookDocument(book)
-					//if err != nil {
-					//	return nil, err
-					//}
+					err := ba.bookRepo.CreateBook(book)
+					if err != nil {
+						return nil, err
+					}
 					return book, nil
 				},
 			},
@@ -143,34 +112,38 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Type:        bookType,
 				Args: graphql.FieldConfigArgument{
 					"id": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.Int),
+						Type: graphql.NewNonNull(graphql.String),
 					},
 					"name": &graphql.ArgumentConfig{
 						Type: graphql.NewNonNull(graphql.String),
 					},
 					"book_ids": &graphql.ArgumentConfig{
-						Type: graphql.NewList(graphql.Int),
+						Type: graphql.NewList(graphql.String),
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					id, idOk := p.Args["id"].(int)
+					id, idOk := p.Args["id"].(string)
 					name, nameOk := p.Args["name"].(string)
 					bookIds, bookIdsOk := p.Args["book_ids"].([]interface{})
-					author := model.Author{}
+					author := &model.Author{}
 					if idOk {
-						author.ID = uint(id)
+						author.ID = id
+						author.Xkey = id
 					}
 					if nameOk {
 						author.Name = name
 					}
 					if bookIdsOk {
-						var auids = make([]uint, 0)
-						for _, aid := range bookIds {
-							auids = append(auids, uint(aid.(int)))
+						var bookIdsStr = make([]string, 0)
+						for _, bId := range bookIds {
+							bookIdsStr = append(bookIdsStr, bId.(string))
 						}
-						author.BookIDs = auids
+						author.BookIDs = bookIdsStr
 					}
-					infra.ListAuthor = append(infra.ListAuthor, author)
+					err := ba.authorRepo.CreateAuthor(author)
+					if err != nil {
+						return nil, err
+					}
 					return author, nil
 				},
 			},
@@ -182,7 +155,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 		Mutation: mutation,
 	})
 	if err != nil {
-		fmt.Printf("Failed to create new schema, error: %v\n", err)
+		fmt.Printf("Failed to create new service, error: %v\n", err)
 	}
 	ctx := context.WithValue(context.Background(), "loaders", loaders)
 

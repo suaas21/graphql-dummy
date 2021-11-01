@@ -2,7 +2,7 @@ build:
 	./build.sh
 
 run: build
-	go run ./cmd/book-author/main.go ./cmd/book-author/graphql.go serve --config config.yaml
+	go run ./cmd/graphql-dummy/main.go ./cmd/graphql-dummy/graphql.go serve --config config.yaml
 
 serve:
 	docker-compose down

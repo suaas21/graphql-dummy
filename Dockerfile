@@ -8,7 +8,7 @@ RUN apk add --no-cache --update git
 ENV GOPATH=/go
 
 # Set apps source directory
-ENV SRC_DIR=${GOPATH}/src/bitbucket.org/evaly/graphql-dummy
+ENV SRC_DIR=${GOPATH}/src/github.com/suaas21/graphql-dummy
 
 # Define current working directory
 WORKDIR ${SRC_DIR}
@@ -27,6 +27,6 @@ RUN apk add --no-cache --update ca-certificates
 # Copy App binary to image
 COPY --from=builder /go/bin/graphql-dummy /usr/local/bin/graphql-dummy
 
-EXPOSE 800
+EXPOSE 8080
 
-ENTRYPOINT ["graphql-dummy"]
+ENTRYPOINT ["graphql"]

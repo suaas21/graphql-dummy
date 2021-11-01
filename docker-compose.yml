@@ -25,8 +25,8 @@ services:
     depends_on:
       - arangodb
     volumes:
-      - ./config.yaml:/etc/book-author/config.yaml
+      - ./config.yaml:/etc/graphql-dummy/config.yaml
     ports:
       - 8080:8080
-    command: 'serve --config /etc/book-author/config.yaml'
+    command: 'serve --config /etc/graphql-dummy/config.yaml'
 

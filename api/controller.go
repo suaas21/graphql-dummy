@@ -3,18 +3,18 @@ package api
 import (
 	"github.com/suaas21/graphql-dummy/api/response"
 	"github.com/suaas21/graphql-dummy/logger"
-	"github.com/suaas21/graphql-dummy/schema"
+	"github.com/suaas21/graphql-dummy/service"
 	"net/http"
 )
 
 // BookAuthorController ...
 type BookAuthorController struct {
-	schema schema.BookAuthor
+	schema service.BookAuthor
 	lgr    logger.StructLogger
 }
 
 // NewBookAuthorController ...
-func NewBookAuthorController(schema schema.BookAuthor, lgr logger.StructLogger) *BookAuthorController {
+func NewBookAuthorController(schema service.BookAuthor, lgr logger.StructLogger) *BookAuthorController {
 	return &BookAuthorController{
 		schema: schema,
 		lgr:    lgr,

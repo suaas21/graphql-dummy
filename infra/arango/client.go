@@ -1,23 +1,24 @@
 package arango
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/arangodb/go-driver"
 	"github.com/arangodb/go-driver/http"
 	"github.com/suaas21/graphql-dummy/config"
-	"github.com/suaas21/graphql-dummy/infra"
+	"golang.org/x/net/context"
+	"reflect"
 )
 
-// arangodb database driver to connect
+// arango client structure
 type Arango struct {
-	database driver.Database
+	ctx context.Context
+	db  driver.Database
+	col driver.Collection
 }
 
-// New returns a new instance of arangodb
-func New(ctx context.Context, cfg *config.Arango) (driver.Database, error) {
-
+// NewArangoDB returns a new instance of arangodb
+func NewArangoDB(ctx context.Context, cfg *config.Arango) (driver.Database, error) {
 	conn, err := http.NewConnection(http.ConnectionConfig{
 		Endpoints: []string{fmt.Sprintf("http://%s:%s", cfg.Host, cfg.Port)},
 		TLSConfig: &tls.Config{ /*...*/ },
@@ -38,83 +39,70 @@ func New(ctx context.Context, cfg *config.Arango) (driver.Database, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return db, nil
 }
 
-func (d *Arango) ReadDocument(ctx context.Context, colName, key string, result interface{}) error {
-	col, err := d.database.Collection(ctx, colName)
-	if IsNotFound(err) != nil {
-		return err
+// NewArangoClient returns Arango database and collection
+func NewArangoClient(ctx context.Context, db driver.Database, col driver.Collection) *Arango {
+	return &Arango{
+		ctx: ctx,
+		db:  db,
+		col: col,
 	}
-	_, err = col.ReadDocument(ctx, key, &result)
+}
+
+func (a *Arango) ReadDocument(ctx context.Context, key string, result interface{}) error {
+	_, err := a.col.ReadDocument(ctx, key, result)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Arango) ReadDocuments(ctx context.Context, colName string, keys []string, results interface{}) error {
-	col, err := d.database.Collection(ctx, colName)
-	if IsNotFound(err) != nil {
-		return err
-	}
-	_, _, err = col.ReadDocuments(ctx, keys, &results)
+func (a *Arango) ReadDocuments(ctx context.Context, keys []string, results interface{}) error {
+	_, _, err := a.col.ReadDocuments(ctx, keys, results)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (d *Arango) CreateDocument(ctx context.Context, colName string, doc interface{}) error {
-	col, err := d.database.Collection(ctx, colName)
-	if IsNotFound(err) != nil {
-		return err
-	}
-	_, err = col.CreateDocument(ctx, doc)
+func (a *Arango) CreateDocument(ctx context.Context, doc interface{}) error {
+	_, err := a.col.CreateDocument(ctx, doc)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (d *Arango) CreateDocuments(ctx context.Context, colName string, docs interface{}) error {
-	col, err := d.database.Collection(ctx, colName)
-	if IsNotFound(err) != nil {
-		return err
-	}
-	_, _, err = col.CreateDocuments(ctx, docs)
+func (a *Arango) CreateDocuments(ctx context.Context, docs interface{}) error {
+	_, _, err := a.col.CreateDocuments(ctx, docs)
 	if err != nil {
 		return err
 	}
 	return err
 }
 
-func (d *Arango) Query(ctx context.Context, query string, binVars map[string]interface{}) (interface{}, error) {
-	cursor, err := d.database.Query(ctx, query, binVars)
+func (a *Arango) Query(ctx context.Context, query string, binVars map[string]interface{}) (interface{}, error) {
+	cursor, err := a.db.Query(ctx, query, binVars)
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close()
+
 	results := make([]interface{}, 0)
-	for cursor.HasMore() {
+	for {
 		var doc interface{}
-		_, err = cursor.ReadDocument(ctx, &doc)
+		_, err := cursor.ReadDocument(ctx, &doc)
 		if driver.IsNoMoreDocuments(err) {
 			break
 		} else if err != nil {
 			return nil, err
 		}
-		results = append(results, doc)
+		if !reflect.ValueOf(doc).IsNil() {
+			results = append(results, doc)
+		}
 	}
-	return results, nil
-}
 
-func IsNotFound(err error) error {
-	if driver.IsNotFound(err) {
-		return infra.ErrNotFound
-	} else if err != nil {
-		return err
-	}
-	return nil
+	return results, nil
 }
