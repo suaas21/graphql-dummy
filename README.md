@@ -11,7 +11,7 @@ $ make build
 
 ## Application binary
 ```bash
-$ book-author serve
+$ graphql-dummy serve
 or
 $ make run
 ```

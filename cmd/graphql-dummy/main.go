@@ -11,8 +11,8 @@ var cfgPath string
 // rootCmd is the root of all sub commands in the binary
 // it doesn't have a Run method as it executes other sub commands
 var rootCmd = &cobra.Command{
-	Use:     "book-author",
-	Short:   "book-author is a http server to serve public facing api",
+	Use:     "graphql",
+	Short:   "graphql-dummy is a http server to serve public facing api",
 	Version: "1.0",
 }
 
