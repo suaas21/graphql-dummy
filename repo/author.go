@@ -9,4 +9,8 @@ type AuthorRepository interface {
 	CreateAuthor(ctx context.Context, author model.Author) error
 	UpdateAuthor(ctx context.Context, author model.Author) error
 	DeleteAuthor(ctx context.Context, id uint) error
+
+	GetAuthor(ctx context.Context, id string) (*model.Author, error)
+
+	QueryAuthors(ctx context.Context, query string, binVars map[string]interface{}) ([]model.Author, error)
 }

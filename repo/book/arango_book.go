@@ -2,6 +2,7 @@ package book
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
@@ -23,27 +24,27 @@ type edgeRelation struct {
 	Type      string      `json:"type,omitempty"`
 }
 
+const CollectionBook = "Book"
+
 type bookArangoRepository struct {
-	db         infra.ArangoDB
-	collection string
-	log        logger.StructLogger
+	db  infra.ArangoDB
+	log logger.StructLogger
 }
 
-func NewArangoBookRepository(db infra.ArangoDB, collection string, lgr logger.StructLogger) repo.BookRepository {
+func NewArangoBookRepository(db infra.ArangoDB, lgr logger.StructLogger) repo.BookRepository {
 	return &bookArangoRepository{
-		db:         db,
-		collection: collection,
-		log:        lgr,
+		db:  db,
+		log: lgr,
 	}
 }
 
 func (b *bookArangoRepository) CreateBook(ctx context.Context, book model.Book) error {
-	if err := b.db.CreateDocument(ctx, b.collection, &book); err != nil {
+	if err := b.db.CreateDocument(ctx, CollectionBook, &book); err != nil {
 		return err
 	}
 
 	for _, authorId := range book.AuthorIDs {
-		if err := b.upsertBookAuthorEdge(ctx, fmt.Sprintf("%d", book.ID), fmt.Sprintf("%d", authorId)); err != nil {
+		if err := b.upsertBookAuthorEdge(ctx, book.ID, authorId); err != nil {
 			return err
 		}
 	}
@@ -52,12 +53,12 @@ func (b *bookArangoRepository) CreateBook(ctx context.Context, book model.Book) 
 }
 
 func (b *bookArangoRepository) UpdateBook(ctx context.Context, book model.Book) error {
-	if err := b.db.UpdateDocument(ctx, b.collection, fmt.Sprintf("%d", book.ID), &book); err != nil {
+	if err := b.db.UpdateDocument(ctx, CollectionBook, book.ID, &book); err != nil {
 		return err
 	}
 
 	for _, authorId := range book.AuthorIDs {
-		if err := b.upsertBookAuthorEdge(ctx, fmt.Sprintf("%d", book.ID), fmt.Sprintf("%d", authorId)); err != nil {
+		if err := b.upsertBookAuthorEdge(ctx, book.ID, authorId); err != nil {
 			return err
 		}
 	}
@@ -65,14 +66,14 @@ func (b *bookArangoRepository) UpdateBook(ctx context.Context, book model.Book) 
 	return nil
 }
 
-func (b *bookArangoRepository) DeleteBook(ctx context.Context, id uint) error {
-	return b.db.RemoveDocument(ctx, b.collection, fmt.Sprintf("%d", id))
+func (b *bookArangoRepository) DeleteBook(ctx context.Context, id string) error {
+	return b.db.RemoveDocument(ctx, CollectionBook, id)
 
 }
 
-func (b *bookArangoRepository) GetBook(ctx context.Context, id uint) (*model.Book, error) {
+func (b *bookArangoRepository) GetBook(ctx context.Context, id string) (*model.Book, error) {
 	var book model.Book
-	if err := b.db.ReadDocument(ctx, b.collection, fmt.Sprintf("%d", id), &book); err != nil {
+	if err := b.db.ReadDocument(ctx, CollectionBook, id, &book); err != nil {
 		return nil, err
 	}
 	return &book, nil
@@ -92,11 +93,24 @@ func (b *bookArangoRepository) upsertBookAuthorEdge(ctx context.Context, bookId,
 	// insert story place relation
 	relation := edgeRelation{Key: key, From: "author", To: "book", Relation: "has_many",
 		XFrom: fmt.Sprintf("authors/%s", authorId),
-		XTo:   fmt.Sprintf("%s/%s", b.collection, bookId), CreatedAt: time.Now().Format(time.RFC3339)}
+		XTo:   fmt.Sprintf("%s/%s", CollectionBook, bookId), CreatedAt: time.Now().Format(time.RFC3339)}
 
 	if err := b.db.CreateDocument(ctx, "book_author_edges", &relation); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (b *bookArangoRepository) QueryBooks(ctx context.Context, query string, binVars map[string]interface{}) ([]model.Book, error) {
+	res, err := b.db.Query(ctx, query, binVars)
+	if err != nil {
+		return nil, err
+	}
+
+	if data, ok := res.([]model.Book); ok {
+		return data, nil
+	}
+
+	return nil, errors.New("query error")
 }

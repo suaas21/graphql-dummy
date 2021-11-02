@@ -10,10 +10,10 @@ import (
 
 func TestBookInMemoryRepository_CRUD(t *testing.T) {
 	bookData := model.Book{
-		ID:          1,
+		ID:          "1",
 		Name:        "Dangerous Book",
 		Description: "A very dangerous description",
-		AuthorIDs:   []uint{1, 2},
+		AuthorIDs:   []string{"1", "2"},
 	}
 
 	inMemoryBookRepo := book.NewInMemoryBookRepository(nil)
@@ -33,7 +33,7 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, returnedBook)
 
-		returnedBook, err = inMemoryBookRepo.GetBook(context.Background(), 2)
+		returnedBook, err = inMemoryBookRepo.GetBook(context.Background(), "2")
 		assert.Error(t, err)
 		assert.Nil(t, returnedBook)
 	})
@@ -46,10 +46,10 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 		assert.NoError(t, err)
 
 		nonExistingBookData := model.Book{
-			ID:          2,
+			ID:          "2",
 			Name:        "A Damn Good Book",
 			Description: "A Short Description about the book",
-			AuthorIDs:   []uint{1, 2},
+			AuthorIDs:   []string{"1", "2"},
 		}
 
 		// nonExistingBookData doesn't exist, should return error
@@ -59,11 +59,11 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 
 	t.Run("delete", func(t *testing.T) {
 		// should not return error
-		err := inMemoryBookRepo.DeleteBook(context.Background(), 1)
+		err := inMemoryBookRepo.DeleteBook(context.Background(), "1")
 		assert.NoError(t, err)
 
 		// duplicate delete, should return error
-		err = inMemoryBookRepo.DeleteBook(context.Background(), 1)
+		err = inMemoryBookRepo.DeleteBook(context.Background(), "1")
 		assert.Error(t, err)
 	})
 }
