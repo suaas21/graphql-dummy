@@ -52,6 +52,7 @@ func NewArangoClient(ctx context.Context, db driver.Database, col driver.Collect
 }
 
 func (a *Arango) ReadDocument(ctx context.Context, key string, result interface{}) error {
+
 	_, err := a.col.ReadDocument(ctx, key, result)
 	if err != nil {
 		return err

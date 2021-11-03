@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"github.com/arangodb/go-driver"
-	"github.com/spf13/viper"
 	"github.com/suaas21/graphql-dummy/infra/sentry"
 	"github.com/suaas21/graphql-dummy/repo/author"
 	"github.com/suaas21/graphql-dummy/repo/book"
@@ -49,10 +47,13 @@ func serve(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	scma, err := ensureDBCollectionForSchema(ctx, db, lgr)
-	if err != nil {
-		return err
-	}
+
+	client := infraArango.NewClient(db)
+
+	bookRepo := book.NewArangoBookRepository(client, lgr)
+	authorRepo := author.NewArangoAuthorRepository(client, lgr)
+
+	bookAuthorService := service.NewBookAuthor(bookRepo, authorRepo, lgr)
 
 	err = sentry.NewInit(cfgSentry.URL)
 	if err != nil {
@@ -64,7 +65,7 @@ func serve(cmd *cobra.Command, args []string) error {
 	errChan := make(chan error)
 
 	go func() {
-		if err := startApiServer(cfgApp, scma, lgr); err != nil {
+		if err := startApiServer(cfgApp, bookAuthorService, lgr); err != nil {
 			errChan <- err
 		}
 	}()
@@ -73,58 +74,16 @@ func serve(cmd *cobra.Command, args []string) error {
 }
 
 func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr logger.StructLogger) (*service.BookAuthor, error) {
-	bookCollectionName := viper.GetString("arango.db_book_collection")
-	authorCollectionName := viper.GetString("arango.db_author_collection")
-	var bookCollection, authorCollection driver.Collection
+	client := infraArango.NewClient(db)
 
-	// check book collection - create if not exists
-	bookExists, err := db.CollectionExists(ctx, bookCollectionName)
-	if err != nil {
-		lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
-	}
-	if !bookExists {
-		bookCollection, err = db.CreateCollection(ctx, bookCollectionName, nil)
-		if err != nil {
-			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
-			return nil, err
-		}
-		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", bookCollectionName))
-	} else {
-		bookCollection, err = db.Collection(ctx, bookCollectionName)
-		if err != nil {
-			lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
-			return nil, err
-		}
-	}
-
-	// check author collection - create if not exists
-	authorExists, err := db.CollectionExists(ctx, authorCollectionName)
-	if err != nil {
-		lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
-	}
-	if !authorExists {
-		authorCollection, err = db.CreateCollection(ctx, authorCollectionName, nil)
-		if err != nil {
-			lgr.Warnln("collection not exist", "", fmt.Sprintf("collection not found error: %v", err))
-			return nil, err
-		}
-		lgr.Println("Collection migrate Successfully", "", fmt.Sprintf("%v collection migrate successfully", authorCollectionName))
-	} else {
-		authorCollection, err = db.Collection(ctx, authorCollectionName)
-		if err != nil {
-			lgr.Warnln("No collection found", "", fmt.Sprintf("collection not found error: %v", err))
-			return nil, err
-		}
-	}
-
-	bookRepo := book.NewArangoBookRepository(ctx, infraArango.NewArangoClient(ctx, db, bookCollection), lgr)
-	authorRepo := author.NewArangoAuthorRepository(ctx, infraArango.NewArangoClient(ctx, db, authorCollection), lgr)
+	bookRepo := book.NewArangoBookRepository(client, lgr)
+	authorRepo := author.NewArangoAuthorRepository(client, lgr)
 
 	return service.NewBookAuthor(bookRepo, authorRepo, lgr), nil
 }
 
-func startApiServer(cfg *config.Application, schema *service.BookAuthor, lgr logger.StructLogger) error {
-	baCtrl := api.NewBookAuthorController(*schema, lgr)
+func startApiServer(cfg *config.Application, bookAuthorService *service.BookAuthor, lgr logger.StructLogger) error {
+	baCtrl := api.NewBookAuthorController(*bookAuthorService, lgr)
 
 	r := chi.NewMux()
 	r.Mount("/api/v1/public", api.NewRouter(baCtrl))

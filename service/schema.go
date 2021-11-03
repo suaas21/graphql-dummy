@@ -34,7 +34,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					id, ok := p.Args["id"].(string)
 					if ok {
-						return ba.bookRepo.GetBookByID(id)
+						return ba.bookRepo.GetBook(p.Context, id)
 					}
 					return nil, nil
 				},
@@ -50,7 +50,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					id, ok := p.Args["id"].(string)
 					if ok {
-						return ba.authorRepo.GetAuthorByID(id)
+						return ba.authorRepo.GetAuthor(p.Context, id)
 					}
 					return nil, nil
 				},
@@ -100,7 +100,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						}
 						book.AuthorIDs = authorIdsStr
 					}
-					err := ba.bookRepo.CreateBook(book)
+					err := ba.bookRepo.CreateBook(p.Context, *book)
 					if err != nil {
 						return nil, err
 					}
@@ -140,7 +140,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						}
 						author.BookIDs = bookIdsStr
 					}
-					err := ba.authorRepo.CreateAuthor(author)
+					err := ba.authorRepo.CreateAuthor(p.Context, *author)
 					if err != nil {
 						return nil, err
 					}
