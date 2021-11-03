@@ -1,9 +1,11 @@
 package service
 
 import (
+	"fmt"
 	"github.com/graph-gophers/dataloader"
 	"golang.org/x/net/context"
 	"log"
+	"strings"
 )
 
 func (ba *BookAuthor) GetAuthorsBatchFn(ctx context.Context, keys dataloader.Keys) []*dataloader.Result {
@@ -15,7 +17,8 @@ func (ba *BookAuthor) GetAuthorsBatchFn(ctx context.Context, keys dataloader.Key
 		return results
 	}
 
-	authors, err := ba.authorRepo.ListAuthorByIDs(keys.Keys())
+	query := fmt.Sprintf(`FOR x IN Author FILTER %s RETURN x`, CommonFilter(keys.Keys()))
+	authors, err := ba.authorRepo.QueryAuthors(ctx, query, nil)
 	if err != nil {
 		handleError(err)
 	}
@@ -41,7 +44,8 @@ func (ba *BookAuthor) GetBooksBatchFn(ctx context.Context, keys dataloader.Keys)
 		return results
 	}
 
-	books, err := ba.bookRepo.ListBookByIDs(keys.Keys())
+	query := fmt.Sprintf(`FOR x IN Book FILTER %s RETURN x`, CommonFilter(keys.Keys()))
+	books, err := ba.bookRepo.QueryBooks(ctx, query, nil)
 	if err != nil {
 		handleError(err)
 	}
@@ -56,4 +60,12 @@ func (ba *BookAuthor) GetBooksBatchFn(ctx context.Context, keys dataloader.Keys)
 	}
 	log.Printf("[GetBooksBatchFn] batch size: %d", len(results))
 	return results
+}
+
+func CommonFilter(keys []string) string {
+	var in []string
+	for _, key := range keys {
+		in = append(in, fmt.Sprintf("CONTAINS(x.id, %s)", key))
+	}
+	return strings.Join(in, " AND ")
 }

@@ -2,8 +2,7 @@ package author
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	"encoding/json"
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
 	"github.com/suaas21/graphql-dummy/model"
@@ -32,8 +31,8 @@ func (a *authorArangoRepository) UpdateAuthor(ctx context.Context, author model.
 	return a.db.UpdateDocument(ctx, CollectionAuthor, author.ID, &author)
 }
 
-func (a *authorArangoRepository) DeleteAuthor(ctx context.Context, id uint) error {
-	return a.db.RemoveDocument(ctx, CollectionAuthor, fmt.Sprintf("%d", id))
+func (a *authorArangoRepository) DeleteAuthor(ctx context.Context, id string) error {
+	return a.db.RemoveDocument(ctx, CollectionAuthor, id)
 }
 
 func (a *authorArangoRepository) GetAuthor(ctx context.Context, id string) (*model.Author, error) {
@@ -50,9 +49,15 @@ func (a *authorArangoRepository) QueryAuthors(ctx context.Context, query string,
 		return nil, err
 	}
 
-	if data, ok := res.([]model.Author); ok {
-		return data, nil
+	authors := make([]model.Author, 0)
+	dataBytes, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(dataBytes, &authors)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, errors.New("query error")
+	return authors, nil
 }

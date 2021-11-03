@@ -2,7 +2,7 @@ package book
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
@@ -108,9 +108,15 @@ func (b *bookArangoRepository) QueryBooks(ctx context.Context, query string, bin
 		return nil, err
 	}
 
-	if data, ok := res.([]model.Book); ok {
-		return data, nil
+	books := make([]model.Book, 0)
+	dataBytes, err := json.Marshal(res)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(dataBytes, &books)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, errors.New("query error")
+	return books, nil
 }
