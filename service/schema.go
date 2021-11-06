@@ -100,7 +100,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						}
 						book.AuthorIDs = authorIdsStr
 					}
-					err := ba.bookRepo.CreateBook(p.Context, *book)
+					err := ba.bookRepo.CreateBook(p.Context, book)
 					if err != nil {
 						return nil, err
 					}
@@ -140,7 +140,7 @@ func (ba *BookAuthor) BookAuthorSchema(incomingReq string) (*graphql.Result, err
 						}
 						author.BookIDs = bookIdsStr
 					}
-					err := ba.authorRepo.CreateAuthor(p.Context, *author)
+					err := ba.authorRepo.CreateAuthor(p.Context, author)
 					if err != nil {
 						return nil, err
 					}
