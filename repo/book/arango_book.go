@@ -3,7 +3,6 @@ package book
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
@@ -118,5 +117,5 @@ func (b *bookArangoRepository) QueryBooks(ctx context.Context, query string, bin
 		return nil, 0, err
 	}
 
-	return nil, int64(cnt), errors.New("query error")
+	return data, int64(cnt), nil
 }
