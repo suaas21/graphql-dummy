@@ -3,6 +3,7 @@ package book
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
@@ -38,8 +39,8 @@ func NewArangoBookRepository(db infra.ArangoDB, lgr logger.StructLogger) repo.Bo
 	}
 }
 
-func (b *bookArangoRepository) CreateBook(ctx context.Context, book model.Book) error {
-	if err := b.db.CreateDocument(ctx, CollectionBook, &book); err != nil {
+func (b *bookArangoRepository) CreateBook(ctx context.Context, book *model.Book) error {
+	if err := b.db.CreateDocument(ctx, CollectionBook, book); err != nil {
 		return err
 	}
 
@@ -52,8 +53,8 @@ func (b *bookArangoRepository) CreateBook(ctx context.Context, book model.Book) 
 	return nil
 }
 
-func (b *bookArangoRepository) UpdateBook(ctx context.Context, book model.Book) error {
-	if err := b.db.UpdateDocument(ctx, CollectionBook, book.ID, &book); err != nil {
+func (b *bookArangoRepository) UpdateBook(ctx context.Context, book *model.Book) error {
+	if err := b.db.UpdateDocument(ctx, CollectionBook, book.ID, book); err != nil {
 		return err
 	}
 
@@ -102,21 +103,20 @@ func (b *bookArangoRepository) upsertBookAuthorEdge(ctx context.Context, bookId,
 	return nil
 }
 
-func (b *bookArangoRepository) QueryBooks(ctx context.Context, query string, binVars map[string]interface{}) ([]model.Book, error) {
-	res, err := b.db.Query(ctx, query, binVars)
+func (b *bookArangoRepository) QueryBooks(ctx context.Context, query string, binVars map[string]interface{}) (data []*model.Book, count int64, err error) {
+	res, cnt, err := b.db.Query(ctx, query, binVars)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	books := make([]model.Book, 0)
-	dataBytes, err := json.Marshal(res)
+	byteRes, err := json.Marshal(res)
 	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(dataBytes, &books)
-	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return books, nil
+	if err := json.Unmarshal(byteRes, &data); err != nil {
+		return nil, 0, err
+	}
+
+	return nil, int64(cnt), errors.New("query error")
 }

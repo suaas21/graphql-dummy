@@ -14,5 +14,5 @@ type ArangoDB interface {
 	RemoveDocument(ctx context.Context, col, key string) error
 	DocumentExists(ctx context.Context, col, key string) (bool, error)
 
-	Query(ctx context.Context, query string, binVars map[string]interface{}) (interface{}, error)
+	Query(ctx context.Context, query string, binVars map[string]interface{}) (data interface{}, count int64, err error)
 }

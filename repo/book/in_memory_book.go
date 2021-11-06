@@ -13,19 +13,19 @@ import (
 type bookInMemoryRepository struct {
 	log logger.StructLogger
 
-	dataStore map[string]model.Book
+	dataStore map[string]*model.Book
 	mu        sync.Mutex
 }
 
 func NewInMemoryBookRepository(lgr logger.StructLogger) repo.BookRepository {
-	dataStore := make(map[string]model.Book)
+	dataStore := make(map[string]*model.Book)
 	return &bookInMemoryRepository{
 		dataStore: dataStore,
 		log:       lgr,
 	}
 }
 
-func (b *bookInMemoryRepository) CreateBook(ctx context.Context, book model.Book) error {
+func (b *bookInMemoryRepository) CreateBook(ctx context.Context, book *model.Book) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -36,7 +36,7 @@ func (b *bookInMemoryRepository) CreateBook(ctx context.Context, book model.Book
 	return nil
 }
 
-func (b *bookInMemoryRepository) UpdateBook(ctx context.Context, book model.Book) error {
+func (b *bookInMemoryRepository) UpdateBook(ctx context.Context, book *model.Book) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -62,10 +62,10 @@ func (b *bookInMemoryRepository) GetBook(ctx context.Context, id string) (*model
 	if book, ok := b.dataStore[id]; !ok {
 		return nil, errors.New(fmt.Sprintf("ID: %v not found", id))
 	} else {
-		return &book, nil
+		return book, nil
 	}
 }
 
-func (b *bookInMemoryRepository) QueryBooks(ctx context.Context, query string, binVars map[string]interface{}) ([]model.Book, error) {
+func (b *bookInMemoryRepository) QueryBooks(ctx context.Context, query string, binVars map[string]interface{}) (data []*model.Book, count int64, err error) {
 	panic("implement me")
 }

@@ -24,7 +24,7 @@ func TestBookArangoRepository_CreateBook(t *testing.T) {
 
 	arangoRepo := book.NewArangoBookRepository(arangoDB, nil)
 
-	if err := arangoRepo.CreateBook(context.Background(), bookData); err != nil {
+	if err := arangoRepo.CreateBook(context.Background(), &bookData); err != nil {
 		t.Fatal(err)
 	}
 
@@ -50,7 +50,7 @@ func TestBookArangoRepository_UpdateBook(t *testing.T) {
 
 	arangoRepo := book.NewArangoBookRepository(arangoDB, nil)
 
-	if err := arangoRepo.UpdateBook(context.Background(), bookData); err != nil {
+	if err := arangoRepo.UpdateBook(context.Background(), &bookData); err != nil {
 		t.Fatal(err)
 	}
 
