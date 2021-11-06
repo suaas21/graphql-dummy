@@ -3,46 +3,47 @@ package arango
 import (
 	"context"
 	"github.com/arangodb/go-driver"
+	"github.com/suaas21/graphql-dummy/infra"
 	"reflect"
 )
 
-type Client struct {
+type ArangoClient struct {
 	db driver.Database
 }
 
-func NewClient(db driver.Database) *Client {
-	return &Client{db: db}
+func NewArangoClient(db driver.Database) infra.ArangoDB {
+	return &ArangoClient{db: db}
 }
 
-func (c *Client) ReadDocument(ctx context.Context, col, key string, result interface{}) error {
+func (c *ArangoClient) ReadDocument(ctx context.Context, col, key string, result interface{}) error {
 	panic("implement me")
 }
 
-func (c *Client) ReadDocuments(ctx context.Context, col string, key []string, results interface{}) error {
+func (c *ArangoClient) ReadDocuments(ctx context.Context, col string, key []string, results interface{}) error {
 	panic("implement me")
 }
 
-func (c *Client) CreateDocument(ctx context.Context, col string, doc interface{}) error {
+func (c *ArangoClient) CreateDocument(ctx context.Context, col string, doc interface{}) error {
 	panic("implement me")
 }
 
-func (c *Client) CreateDocuments(ctx context.Context, col string, docs interface{}) error {
+func (c *ArangoClient) CreateDocuments(ctx context.Context, col string, docs interface{}) error {
 	panic("implement me")
 }
 
-func (c *Client) UpdateDocument(ctx context.Context, col, key string, doc interface{}) error {
+func (c *ArangoClient) UpdateDocument(ctx context.Context, col, key string, doc interface{}) error {
 	panic("implement me")
 }
 
-func (c *Client) RemoveDocument(ctx context.Context, col, key string) error {
+func (c *ArangoClient) RemoveDocument(ctx context.Context, col, key string) error {
 	panic("implement me")
 }
 
-func (c *Client) DocumentExists(ctx context.Context, col, key string) (bool, error) {
+func (c *ArangoClient) DocumentExists(ctx context.Context, col, key string) (bool, error) {
 	panic("implement me")
 }
 
-func (c *Client) Query(ctx context.Context, query string, binVars map[string]interface{}) (data interface{}, count int64, err error) {
+func (c *ArangoClient) Query(ctx context.Context, query string, binVars map[string]interface{}) (data interface{}, count int64, err error) {
 	ct := driver.WithQueryFullCount(ctx, true)
 	cursor, err := c.db.Query(ct, query, binVars)
 
