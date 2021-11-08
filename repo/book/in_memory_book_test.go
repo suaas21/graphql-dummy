@@ -20,11 +20,11 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 
 	t.Run("create", func(t *testing.T) {
 		// should not return error
-		err := inMemoryBookRepo.CreateBook(context.Background(), bookData)
+		err := inMemoryBookRepo.CreateBook(context.Background(), &bookData)
 		assert.NoError(t, err)
 
 		// duplicate create, should return error
-		err = inMemoryBookRepo.CreateBook(context.Background(), bookData)
+		err = inMemoryBookRepo.CreateBook(context.Background(), &bookData)
 		assert.Error(t, err)
 	})
 
@@ -42,7 +42,7 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 		bookData.Name = "A Good Book"
 
 		// should not return error
-		err := inMemoryBookRepo.UpdateBook(context.Background(), bookData)
+		err := inMemoryBookRepo.UpdateBook(context.Background(), &bookData)
 		assert.NoError(t, err)
 
 		nonExistingBookData := model.Book{
@@ -53,7 +53,7 @@ func TestBookInMemoryRepository_CRUD(t *testing.T) {
 		}
 
 		// nonExistingBookData doesn't exist, should return error
-		err = inMemoryBookRepo.UpdateBook(context.Background(), nonExistingBookData)
+		err = inMemoryBookRepo.UpdateBook(context.Background(), &nonExistingBookData)
 		assert.Error(t, err)
 	})
 

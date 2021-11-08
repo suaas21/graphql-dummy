@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/arangodb/go-driver"
 	"github.com/suaas21/graphql-dummy/infra/sentry"
 	"github.com/suaas21/graphql-dummy/repo/author"
 	"github.com/suaas21/graphql-dummy/repo/book"
@@ -48,7 +47,7 @@ func serve(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	client := infraArango.NewClient(db)
+	client := infraArango.NewArangoClient(db)
 
 	bookRepo := book.NewArangoBookRepository(client, lgr)
 	authorRepo := author.NewArangoAuthorRepository(client, lgr)
@@ -71,15 +70,6 @@ func serve(cmd *cobra.Command, args []string) error {
 	}()
 	return <-errChan
 
-}
-
-func ensureDBCollectionForSchema(ctx context.Context, db driver.Database, lgr logger.StructLogger) (*service.BookAuthor, error) {
-	client := infraArango.NewClient(db)
-
-	bookRepo := book.NewArangoBookRepository(client, lgr)
-	authorRepo := author.NewArangoAuthorRepository(client, lgr)
-
-	return service.NewBookAuthor(bookRepo, authorRepo, lgr), nil
 }
 
 func startApiServer(cfg *config.Application, bookAuthorService *service.BookAuthor, lgr logger.StructLogger) error {

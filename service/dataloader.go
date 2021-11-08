@@ -18,7 +18,7 @@ func (ba *BookAuthor) GetAuthorsBatchFn(ctx context.Context, keys dataloader.Key
 	}
 
 	query := fmt.Sprintf(`FOR x IN Author FILTER %s RETURN x`, CommonFilter(keys.Keys()))
-	authors, err := ba.authorRepo.QueryAuthors(ctx, query, nil)
+	authors, _, err := ba.authorRepo.QueryAuthors(ctx, query, nil)
 	if err != nil {
 		handleError(err)
 	}
@@ -45,7 +45,7 @@ func (ba *BookAuthor) GetBooksBatchFn(ctx context.Context, keys dataloader.Keys)
 	}
 
 	query := fmt.Sprintf(`FOR x IN Book FILTER %s RETURN x`, CommonFilter(keys.Keys()))
-	books, err := ba.bookRepo.QueryBooks(ctx, query, nil)
+	books, _, err := ba.bookRepo.QueryBooks(ctx, query, nil)
 	if err != nil {
 		handleError(err)
 	}

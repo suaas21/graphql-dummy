@@ -3,6 +3,8 @@ package author
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/suaas21/graphql-dummy/infra"
 	"github.com/suaas21/graphql-dummy/logger"
 	"github.com/suaas21/graphql-dummy/model"
@@ -23,16 +25,16 @@ func NewArangoAuthorRepository(db infra.ArangoDB, lgr logger.StructLogger) repo.
 	}
 }
 
-func (a *authorArangoRepository) CreateAuthor(ctx context.Context, author model.Author) error {
-	return a.db.CreateDocument(ctx, CollectionAuthor, &author)
+func (a *authorArangoRepository) CreateAuthor(ctx context.Context, author *model.Author) error {
+	return a.db.CreateDocument(ctx, CollectionAuthor, author)
 }
 
-func (a *authorArangoRepository) UpdateAuthor(ctx context.Context, author model.Author) error {
-	return a.db.UpdateDocument(ctx, CollectionAuthor, author.ID, &author)
+func (a *authorArangoRepository) UpdateAuthor(ctx context.Context, author *model.Author) error {
+	return a.db.UpdateDocument(ctx, CollectionAuthor, author.ID, author)
 }
 
-func (a *authorArangoRepository) DeleteAuthor(ctx context.Context, id string) error {
-	return a.db.RemoveDocument(ctx, CollectionAuthor, id)
+func (a *authorArangoRepository) DeleteAuthor(ctx context.Context, id uint) error {
+	return a.db.RemoveDocument(ctx, CollectionAuthor, fmt.Sprintf("%d", id))
 }
 
 func (a *authorArangoRepository) GetAuthor(ctx context.Context, id string) (*model.Author, error) {
@@ -43,21 +45,20 @@ func (a *authorArangoRepository) GetAuthor(ctx context.Context, id string) (*mod
 	return &author, nil
 }
 
-func (a *authorArangoRepository) QueryAuthors(ctx context.Context, query string, binVars map[string]interface{}) ([]model.Author, error) {
-	res, err := a.db.Query(ctx, query, binVars)
+func (a *authorArangoRepository) QueryAuthors(ctx context.Context, query string, binVars map[string]interface{}) (data []*model.Author, count int64, err error) {
+	res, cnt, err := a.db.Query(ctx, query, binVars)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	authors := make([]model.Author, 0)
-	dataBytes, err := json.Marshal(res)
+	byteRes, err := json.Marshal(res)
 	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(dataBytes, &authors)
-	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return authors, nil
+	if err := json.Unmarshal(byteRes, &data); err != nil {
+		return nil, 0, err
+	}
+
+	return nil, int64(cnt), errors.New("query error")
 }

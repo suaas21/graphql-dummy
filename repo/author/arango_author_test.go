@@ -21,7 +21,7 @@ func TestAuthorArangoRepository_CreateAuthor(t *testing.T) {
 
 	arangoRepo := author.NewArangoAuthorRepository(arangoDB, nil)
 
-	if err := arangoRepo.CreateAuthor(context.Background(), authorData); err != nil {
+	if err := arangoRepo.CreateAuthor(context.Background(), &authorData); err != nil {
 		t.Fatal(err)
 	}
 
@@ -40,7 +40,7 @@ func TestAuthorArangoRepository_UpdateAuthor(t *testing.T) {
 
 	arangoRepo := author.NewArangoAuthorRepository(arangoDB, nil)
 
-	if err := arangoRepo.UpdateAuthor(context.Background(), authorData); err != nil {
+	if err := arangoRepo.UpdateAuthor(context.Background(), &authorData); err != nil {
 		t.Fatal(err)
 	}
 
